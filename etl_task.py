@@ -191,7 +191,6 @@ class ETLTask:
                     logging.log(logging.INFO, f"Successfully loaded rows from {s3_urls} to database.")
                     logging.log(logging.INFO, f"Successfully processed ETL Job with ID: {etl_job_row.id}")
                 except:
-                    # Todo: Make the job retry
                     # If for some reason the upload fails, we should mark the job as failed too
                     self.etl_db.mark_downloading_from_s3_failed(job_id=etl_job_row.id,
                                                                 err_msg=traceback.format_exc()[:4096])

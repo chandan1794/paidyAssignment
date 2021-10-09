@@ -127,3 +127,11 @@ according to the threshold size we set for the job.
         _LOADED_
     5. The steps 1-4 are repeated until there are jobs with status **SENT_FOR_ETL** in 
     the SCANNER Table.
+
+
+### Todo:
+1. Create a central script, which can
+    1. Launch _1 Scanner_
+    2. Launch _N ETLs_
+2. Handle multiple ETLs
+3. Retry a failed job
