@@ -135,3 +135,9 @@ according to the threshold size we set for the job.
     2. Launch _N ETLs_
 2. Handle multiple ETLs
 3. Retry a failed job
+
+
+## References:
+1. YAML: https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started
+2. CRUD in SQLAlchemy: https://overiq.com/sqlalchemy-101/defining-schema-in-sqlalchemy-orm/
+3. CSV from S3: https://dev.to/shihanng/how-to-read-csv-file-from-amazon-s3-in-python-4ee9
