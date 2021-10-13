@@ -2,13 +2,15 @@
 
 Problem statement can be found at https://github.com/paidy/dse-interview
 
+
+# Part 1
 ## Assumptions
-1. The data format remains same.
+1. The data format remains the same.
 2. The frequency of data is hourly (Will try to make it configurable).
-3. The CSV files is loaded on source(AWS S3) by 3rd party or as an output from some other source. 
+3. The CSV files are loaded on source(AWS S3) by 3rd party or as an output from some other source. 
 In this project that is considered as a black box.
 4. Every time the data is added using a new file or a group of new files.
-5. No old files are modified in anyway.
+5. No old files are modified in any way.
 6. The CSV file name is following a constant format. (Might delete it later)
 7. In the source folder there are only data files and nothing else.
 8. The files path should follow the following pattern,
@@ -141,3 +143,20 @@ according to the threshold size we set for the job.
 1. YAML: https://www.cloudbees.com/blog/yaml-tutorial-everything-you-need-get-started
 2. CRUD in SQLAlchemy: https://overiq.com/sqlalchemy-101/defining-schema-in-sqlalchemy-orm/
 3. CSV from S3: https://dev.to/shihanng/how-to-read-csv-file-from-amazon-s3-in-python-4ee9
+
+
+# Part 2:
+For part 2, I have performed all the EDA in a Jupyter Notebook. 
+Which is `eda_of_loan_applications.ipynb`. 
+It requires `sample_data.csv` at the same level.
+
+## Tasks
+1. Reading the Data File
+2. Data Types
+3. Statistical Description of columns
+4. Balance/Imbalance Analysis
+5. Correlation Analysis
+6. Outlier Detection
+7. Data Imputation
+8. Feature Engineering
+9. Final Words
