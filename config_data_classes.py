@@ -20,3 +20,15 @@ class S3Config:
 @dataclass
 class ETLConfig:
     JOB_SIZE_IN_BYTES: int
+
+
+@dataclass
+class ETLConfig:
+    JOB_SIZE_IN_BYTES: int
+
+
+@dataclass
+class PipelineSettings:
+    SCANNER_CRON: str
+    ETL_CRON: str
+    CONSECUTIVE_EXECUTIONS_DELAY_IN_SECOND: int = 60
