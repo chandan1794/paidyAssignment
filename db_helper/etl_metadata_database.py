@@ -113,6 +113,9 @@ class ETLMetadataDatabaseConnector(DatabaseConnector):
         :return: ScannerTable row
         """
         with self.Session.begin() as session:
+            # To prevent multiple transactions to read the same row
+            session.connection(execution_options={'isolation_level': 'REPEATABLE READ'})
+
             # Fetching the latest job where status is SENT_FOR_ETL
             latest_job = (
                 session

@@ -1,3 +1,4 @@
+# Configuration of the Pipeline Metadata database
 METADATA_DATABASE:
   USERNAME:
   PASSWORD:
@@ -5,6 +6,7 @@ METADATA_DATABASE:
   PORT:
   DATABASE_NAME: etl_pipeline_metadata
 
+# Configuration of the Reporting Database
 REPORTING_DATABASE:
   USERNAME:
   PASSWORD:
@@ -12,10 +14,18 @@ REPORTING_DATABASE:
   PORT:
   DATABASE_NAME: raw_data
 
+# Configuration of the S3 bucket, which contains all the CSV files
 S3:
   BUCKET: credit-risk-data
   AWS_ACCESS_KEY:
   AWS_SECRET_KEY:
 
+# Configuration for the ETL Process
 ETL:
   JOB_SIZE_IN_BYTES: 10485760 # 10 MB
+
+# General Pipeline Settings
+PIPELINE_SETTINGS:
+  SCANNER_CRON: "00,30 * * * *"
+  ETL_CRON: "05,35 * * * *"
+  CONSECUTIVE_EXECUTIONS_DELAY_IN_SECOND: 60

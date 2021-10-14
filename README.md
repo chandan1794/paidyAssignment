@@ -27,10 +27,10 @@ In this project that is considered as a black box.
 1. Cron Job: It is to trigger a Scanner process.
 2. Scanner Process: It will scan the source of CSV files as per our frequency.
 As per our assumption let us say it is an hour, then let us assume the Scanner runs
-at 1200 hrs, then it will scan the filestore from 1100 to 1200 hrs.
+at 1200 hrs, then it will scan the filestore from _Latest last_modified_time_ to 1200 hrs.
 
-    For some unfortunate reason, the process failed in between, then when we restarts it,
-    it will take the last time where we left scanning, by checking the **file_modified_time**
+    For some unfortunate reason, the process failed in between, then when we restart it,
+    it will take the last time when we left scanning, by checking the **file_modified_time**
     and scan again.
     
     If the filestore cannot guarantee ordering of files according to their modified time, in
@@ -38,44 +38,45 @@ at 1200 hrs, then it will scan the filestore from 1100 to 1200 hrs.
     the already present entries in the table.
 
     It will store the data in a metadata table for the scanner.
-    The Scanner will scan files one by one, and add their sizes to not over reach the threshold,
+    The Scanner will scan files one by one, and add their sizes to not overreach the threshold,
     which we will set. Once close to it, it will create a new job and add a new entry to the
     ETL task metadata table.
-    Also will add a new job to the ETL, when there are no more new files to scan, after waiting
+    Also, will add a new job to the ETL, when there are no more new files to scan, after waiting
     for a certain threshold period.
-    
-    ### Scanner Table Schema
-    **Id**:  Unique Id
-    
-    **files**: String of comma separated full file uris
-    
-    **latest_file_modified_time**: Latest last modified time in the whole job. 
-    This will be used to find out when the latest file is uploaded and then
-    will be considered to download the data or not.
-    
-    **total_size_in_bytes**: Sum of size of all the file in bytes
-    
-    **created_time**: First time when the scanner created this row
-    
-    **modified_time**: When the status of the row changed last
-     
-     **status**: Status of the job. In our case, we just need to have two status.
-     
-     1. _NONE_: Dummy job, there will be just one such job with this status in the whole table.
-     2. _SENT_FOR_ETL_: When the job is ready for the ETL
-     3. _PROCESSING_: When the job is under processing, means taken up by the ETL process
-     4. _LOADED_: When the ETL process loads the data to the database
-     4. _FAILED_: If the process fails
-     
-     **failure_msg**: If failed, we can add the stacktrace here for easy viewing.
 
 3. ETL JOB: In this job we will be performing all the ETL tasks we are required to.
    
-   This process will be triggered by a cron of faster frequency then the Scanner. Because of the fact, that
+   This process will be triggered by a cron. Multiple ETLs can be used, because of the fact, that
    if we are running just one ETL process at a time, then only 1 job will execute at a time, but Scanner 
    can create multiple jobs. If the job creation exceeds the capabilities of 1 ETL, then we can add another ETL.
-   
-   > Will not add the feature to handle multiple ETL processes at the moment.
+
+### Scanner Table Schema
+**Id**:  Unique Id
+
+**files**: String of comma separated full file uris
+
+**latest_file_modified_time**: Latest last modified time in the whole job. 
+This will be used to find out when the latest file is uploaded and then
+will be considered to download the data or not.
+
+**total_size_in_bytes**: Sum of size of all the file in bytes
+
+**created_time**: First time when the scanner created this row
+
+**modified_time**: When the status of the row changed last
+ 
+**status**: Status of the job. In our case, we just need to have two status.
+1. _NONE_: Dummy job, there will be just one such job with this status in the whole table.
+2. _SENT_FOR_ETL_: When the job is ready for the ETL
+3. _PROCESSING_: When the job is under processing, means taken up by the ETL process
+4. _LOADED_: When the ETL process loads the data to the database
+5. _FAILED_: If the process fails
+ 
+**failure_msg**: If failed, we can add the stacktrace here for easy viewing.
+
+## Software Requirements
+1. Python 3.7+
+2. MySQL
 
 ## Getting Started
 1. Install MySQL
@@ -87,21 +88,29 @@ Database in the _config.yaml_ is same as in the commands
     CREATE DATABASE etl_pipeline_metadata CHARACTER SET utf8;
     CREATE DATABASE raw_data CHARACTER SET utf8;
     ```
-5. Install the python requirements
+5. Install the python requirements. (Run commands at the root)
     ```bash
     pip install -r requirements.txt
+    pip install .
     ```
-5. Run the setup script
+6. Run the setup script
+   ```
+    python3 setup_pipeline.py
+   ```
     1. This is to setup the database in the system you are running. _Make sure you have MySQL installed_.
     2. Check if the S3 connection is working or not
-   
-## Requirements
-1. Python 3.7+
-2. MySQL
-
+7. Update the _env.sh_ as per the requirement
+8. Set the following variables
+   ```bash
+   export PROJECT_DIR=/path/to/project/root
+   ```
+9. Launch the pipeline
+   ```bash
+   bash deploy_pipeline.sh
+   ```
 
 ## Flow of the Solution:
-1. There will be **just one Scanner Job** Running which will be looking at the 
+1. There will be **just one Scanner Job** Running. Which will be looking at the 
 S3 bucket for the possible new files according to our frequency.
 Whenever it find new files, it will group those files into one single job
 according to the threshold size we set for the job.
@@ -131,12 +140,24 @@ according to the threshold size we set for the job.
     the SCANNER Table.
 
 
+## KEEP IN MIND!
+1. There should only be 1 Scanner. I have designed the deployment script with that
+in mind. If you explicitly run the python script, it can cause duplication in the final data.
+2. You have to kill the processes manually. Below commands will give you the list of 
+   processes running
+   ```bash
+    ps -ef | grep "start_scanner.py" | grep -v grep
+    ps -ef | grep "start_etl.py" | grep -v grep
+   ```
+3. Once a process is failed, to re-run it, you have to modify the entry in the db itself.
+   Set the status of the row to `SENT_FOR_ETL`.
+
 ### Todo:
-1. Create a central script, which can
-    1. Launch _1 Scanner_
-    2. Launch _N ETLs_
-2. Handle multiple ETLs
-3. Retry a failed job
+1. [x] Create a central script, which can 
+    1. [x] Launch _1 Scanner_
+    2. [x] Launch _N ETLs_
+2. [x] Handle multiple ETLs
+3. [ ] Retry a failed job
 
 
 ## References:
