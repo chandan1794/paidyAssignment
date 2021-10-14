@@ -1,12 +1,14 @@
 anyio==3.3.2
 boto3==1.18.58
 botocore==1.21.58
+croniter==1.0.15
 databases==0.5.2
 greenlet==1.1.2
 idna==3.2
 importlib-metadata==4.8.1
 jmespath==0.10.0
 orm==0.2.1
+-e git+https://github.com/chandan1794/paidyAssignment.git@a780203033a41a86457a0da3a3bc0b51fc6edacb#egg=paidy_etl_assignment
 PyMySQL==1.0.2
 python-dateutil==2.8.2
 pytz==2021.3

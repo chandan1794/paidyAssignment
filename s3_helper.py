@@ -11,6 +11,9 @@ from botocore.exceptions import ClientError
 from datetime import datetime
 from dataclasses import dataclass
 import constants
+from logging_setup import get_logger
+
+logging = get_logger()
 
 
 @dataclass
@@ -71,7 +74,7 @@ class S3Helper:
         """
         next_continuation_token = None
         new_files = []
-        print(f"Looking in {self._full_path(prefix)}")
+        logging.info(f"Looking in {self._full_path(prefix)}")
         while True:
             if next_continuation_token:
                 resp = self.s3_client.list_objects_v2(Bucket=self.bucket_name,

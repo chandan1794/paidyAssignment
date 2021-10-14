@@ -3,3 +3,5 @@ venv/
 config.yaml
 *__pycache__*
 .ipynb_checkpoints/
+*.log
+paidy_etl_assignment.egg-info/
