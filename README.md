@@ -27,10 +27,10 @@ In this project that is considered as a black box.
 1. Cron Job: It is to trigger a Scanner process.
 2. Scanner Process: It will scan the source of CSV files as per our frequency.
 As per our assumption let us say it is an hour, then let us assume the Scanner runs
-at 1200 hrs, then it will scan the filestore from 1100 to 1200 hrs.
+at 1200 hrs, then it will scan the filestore from _Latest last_modified_time_ to 1200 hrs.
 
-    For some unfortunate reason, the process failed in between, then when we restarts it,
-    it will take the last time where we left scanning, by checking the **file_modified_time**
+    For some unfortunate reason, the process failed in between, then when we restart it,
+    it will take the last time when we left scanning, by checking the **file_modified_time**
     and scan again.
     
     If the filestore cannot guarantee ordering of files according to their modified time, in
@@ -38,19 +38,17 @@ at 1200 hrs, then it will scan the filestore from 1100 to 1200 hrs.
     the already present entries in the table.
 
     It will store the data in a metadata table for the scanner.
-    The Scanner will scan files one by one, and add their sizes to not over reach the threshold,
+    The Scanner will scan files one by one, and add their sizes to not overreach the threshold,
     which we will set. Once close to it, it will create a new job and add a new entry to the
     ETL task metadata table.
-    Also will add a new job to the ETL, when there are no more new files to scan, after waiting
+    Also, will add a new job to the ETL, when there are no more new files to scan, after waiting
     for a certain threshold period.
 
 3. ETL JOB: In this job we will be performing all the ETL tasks we are required to.
    
-   This process will be triggered by a cron of faster frequency then the Scanner. Because of the fact, that
+   This process will be triggered by a cron. Multiple ETLs can be used, because of the fact, that
    if we are running just one ETL process at a time, then only 1 job will execute at a time, but Scanner 
    can create multiple jobs. If the job creation exceeds the capabilities of 1 ETL, then we can add another ETL.
-   
-   > Will not add the feature to handle multiple ETL processes at the moment.
 
 ### Scanner Table Schema
 **Id**:  Unique Id
@@ -90,21 +88,26 @@ Database in the _config.yaml_ is same as in the commands
     CREATE DATABASE etl_pipeline_metadata CHARACTER SET utf8;
     CREATE DATABASE raw_data CHARACTER SET utf8;
     ```
-5. Install the python requirements
+5. Install the python requirements. (Run commands at the root)
     ```bash
     pip install -r requirements.txt
+    pip install .
     ```
 6. Run the setup script
-    ```
+   ```
     python3 setup_pipeline.py
-    ```
+   ```
     1. This is to setup the database in the system you are running. _Make sure you have MySQL installed_.
     2. Check if the S3 connection is working or not
-8. Update the _env.sh_ as per the requirement
+7. Update the _env.sh_ as per the requirement
+8. Set the following variables
+   ```bash
+   export PROJECT_DIR=/path/to/project/root
+   ```
 9. Launch the pipeline
-    ```bash
-    bash deploy_pipeline.sh
-    ```
+   ```bash
+   bash deploy_pipeline.sh
+   ```
 
 ## Flow of the Solution:
 1. There will be **just one Scanner Job** Running. Which will be looking at the 
@@ -136,6 +139,18 @@ according to the threshold size we set for the job.
     5. The steps 1-4 are repeated until there are jobs with status **SENT_FOR_ETL** in 
     the SCANNER Table.
 
+
+## KEEP IN MIND!
+1. There should only be 1 Scanner. I have designed the deployment script with that
+in mind. If you explicitly run the python script, it can cause duplication in the final data.
+2. You have to kill the processes manually. Below commands will give you the list of 
+   processes running
+   ```bash
+    ps -ef | grep "start_scanner.py" | grep -v grep
+    ps -ef | grep "start_etl.py" | grep -v grep
+   ```
+3. Once a process is failed, to re-run it, you have to modify the entry in the db itself.
+   Set the status of the row to `SENT_FOR_ETL`.
 
 ### Todo:
 1. [x] Create a central script, which can 
