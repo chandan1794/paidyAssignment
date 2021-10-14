@@ -1,21 +1,17 @@
 """
 Module to handle the ETL
 """
-import yaml
-from db_helper.etl_metadata_database import ETLMetadataDatabaseConnector
-from db_helper.reporting_database import ReportingDatabaseConnector, LoanApplicationsTable
-from db_helper.database_connector import DatabaseConnector
-from s3_helper import S3Helper
+from db_helper import LoanApplicationsTable, DatabaseConnector
 from config_data_classes import DatabaseConfig, S3Config, ETLConfig
+from . import BaseTask
 import constants
-import logging
 import traceback
+from logging_setup import get_logger
 
-log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging = get_logger()
 
 
-class ETLTask:
+class ETLTask(BaseTask):
     """
     Class to handle all ETL related tasks
     """
@@ -31,24 +27,10 @@ class ETLTask:
         :param s3_config: S3 config Object
         :param etl_config: ETL tasks related object
         """
-
-        self.etl_db = ETLMetadataDatabaseConnector(db_name=etl_db_config.DATABASE_NAME,
-                                                   host=etl_db_config.HOST,
-                                                   port=etl_db_config.PORT,
-                                                   user=etl_db_config.USERNAME,
-                                                   password=etl_db_config.PASSWORD)
-
-        self.reporting_db = ReportingDatabaseConnector(db_name=reporting_db_config.DATABASE_NAME,
-                                                       host=reporting_db_config.HOST,
-                                                       port=reporting_db_config.PORT,
-                                                       user=reporting_db_config.USERNAME,
-                                                       password=reporting_db_config.PASSWORD)
-
-        self.s3_helper = S3Helper(bucket_name=s3_config.BUCKET,
-                                  access_key=s3_config.AWS_ACCESS_KEY,
-                                  secret_key=s3_config.AWS_SECRET_KEY)
-
-        self.etl_config = etl_config
+        super().__init__(etl_db_config=etl_db_config,
+                         reporting_db_config=reporting_db_config,
+                         s3_config=s3_config,
+                         etl_config=etl_config)
 
     def clean_data(self, row):
         """
@@ -199,19 +181,3 @@ class ETLTask:
             else:
                 logging.log(logging.INFO, "No more ETL Jobs to process.")
                 break
-
-
-if __name__ == "__main__":
-    # Importing all the configurations
-    with open("config.yaml", "r") as conf_file:
-        config = yaml.safe_load(conf_file)
-
-    _etl_db_config = DatabaseConfig(**config["METADATA_DATABASE"])
-    _reporting_db_config = DatabaseConfig(**config["REPORTING_DATABASE"])
-    _s3_config = S3Config(**config["S3"])
-    _etl_config = ETLConfig(**config["ETL"])
-
-    ETLTask(etl_db_config=_etl_db_config,
-            reporting_db_config=_reporting_db_config,
-            s3_config=_s3_config,
-            etl_config=_etl_config).run()

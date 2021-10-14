@@ -1,20 +1,19 @@
 """
 Module to handle the Scanner
 """
-import yaml
-from db_helper.etl_metadata_database import ETLMetadataDatabaseConnector, ScannerTable, ScannerStatusEnum
-from s3_helper import S3Helper, S3FileObject
+from db_helper import ScannerTable, ScannerStatusEnum
+from s3_helper import S3FileObject
+from . import BaseTask
 from config_data_classes import DatabaseConfig, S3Config, ETLConfig
 import constants
 from datetime import datetime as dt
 from datetime import timedelta as td
-import logging
+from logging_setup import get_logger
 
-log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging = get_logger()
 
 
-class ScannerTask:
+class ScannerTask(BaseTask):
     """
     Class to handle all Scanner related tasks
     """
@@ -25,17 +24,9 @@ class ScannerTask:
         :param s3_config: S3 config Object
         :param etl_config: ETL tasks related object
         """
-        self.etl_db = ETLMetadataDatabaseConnector(db_name=etl_db_config.DATABASE_NAME,
-                                                   host=etl_db_config.HOST,
-                                                   port=etl_db_config.PORT,
-                                                   user=etl_db_config.USERNAME,
-                                                   password=etl_db_config.PASSWORD)
-
-        self.s3_helper = S3Helper(bucket_name=s3_config.BUCKET,
-                                  access_key=s3_config.AWS_ACCESS_KEY,
-                                  secret_key=s3_config.AWS_SECRET_KEY)
-
-        self.etl_config = etl_config
+        super().__init__(etl_db_config=etl_db_config,
+                         s3_config=s3_config,
+                         etl_config=etl_config)
 
     @staticmethod
     def _get_prefix(parts: list, path_sep="/"):
@@ -154,17 +145,3 @@ class ScannerTask:
             logging.log(logging.INFO, f"Created {len(new_jobs)} new ETL jobs.")
         else:
             logging.log(logging.INFO, "No new files to scan!")
-
-
-if __name__ == "__main__":
-    # Importing all the configurations
-    with open("config.yaml", "r") as conf_file:
-        config = yaml.safe_load(conf_file)
-
-    _etl_db_config = DatabaseConfig(**config["METADATA_DATABASE"])
-    _s3_config = S3Config(**config["S3"])
-    _etl_config = ETLConfig(**config["ETL"])
-
-    ScannerTask(etl_db_config=_etl_db_config,
-                s3_config=_s3_config,
-                etl_config=_etl_config).run()
