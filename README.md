@@ -43,31 +43,6 @@ at 1200 hrs, then it will scan the filestore from 1100 to 1200 hrs.
     ETL task metadata table.
     Also will add a new job to the ETL, when there are no more new files to scan, after waiting
     for a certain threshold period.
-    
-    ### Scanner Table Schema
-    **Id**:  Unique Id
-    
-    **files**: String of comma separated full file uris
-    
-    **latest_file_modified_time**: Latest last modified time in the whole job. 
-    This will be used to find out when the latest file is uploaded and then
-    will be considered to download the data or not.
-    
-    **total_size_in_bytes**: Sum of size of all the file in bytes
-    
-    **created_time**: First time when the scanner created this row
-    
-    **modified_time**: When the status of the row changed last
-     
-     **status**: Status of the job. In our case, we just need to have two status.
-     
-     1. _NONE_: Dummy job, there will be just one such job with this status in the whole table.
-     2. _SENT_FOR_ETL_: When the job is ready for the ETL
-     3. _PROCESSING_: When the job is under processing, means taken up by the ETL process
-     4. _LOADED_: When the ETL process loads the data to the database
-     4. _FAILED_: If the process fails
-     
-     **failure_msg**: If failed, we can add the stacktrace here for easy viewing.
 
 3. ETL JOB: In this job we will be performing all the ETL tasks we are required to.
    
@@ -76,6 +51,34 @@ at 1200 hrs, then it will scan the filestore from 1100 to 1200 hrs.
    can create multiple jobs. If the job creation exceeds the capabilities of 1 ETL, then we can add another ETL.
    
    > Will not add the feature to handle multiple ETL processes at the moment.
+
+### Scanner Table Schema
+**Id**:  Unique Id
+
+**files**: String of comma separated full file uris
+
+**latest_file_modified_time**: Latest last modified time in the whole job. 
+This will be used to find out when the latest file is uploaded and then
+will be considered to download the data or not.
+
+**total_size_in_bytes**: Sum of size of all the file in bytes
+
+**created_time**: First time when the scanner created this row
+
+**modified_time**: When the status of the row changed last
+ 
+**status**: Status of the job. In our case, we just need to have two status.
+1. _NONE_: Dummy job, there will be just one such job with this status in the whole table.
+2. _SENT_FOR_ETL_: When the job is ready for the ETL
+3. _PROCESSING_: When the job is under processing, means taken up by the ETL process
+4. _LOADED_: When the ETL process loads the data to the database
+5. _FAILED_: If the process fails
+ 
+**failure_msg**: If failed, we can add the stacktrace here for easy viewing.
+
+## Software Requirements
+1. Python 3.7+
+2. MySQL
 
 ## Getting Started
 1. Install MySQL
@@ -91,17 +94,20 @@ Database in the _config.yaml_ is same as in the commands
     ```bash
     pip install -r requirements.txt
     ```
-5. Run the setup script
+6. Run the setup script
+    ```
+    python3 setup_pipeline.py
+    ```
     1. This is to setup the database in the system you are running. _Make sure you have MySQL installed_.
     2. Check if the S3 connection is working or not
-   
-## Requirements
-1. Python 3.7+
-2. MySQL
-
+8. Update the _env.sh_ as per the requirement
+9. Launch the pipeline
+    ```bash
+    bash deploy_pipeline.sh
+    ```
 
 ## Flow of the Solution:
-1. There will be **just one Scanner Job** Running which will be looking at the 
+1. There will be **just one Scanner Job** Running. Which will be looking at the 
 S3 bucket for the possible new files according to our frequency.
 Whenever it find new files, it will group those files into one single job
 according to the threshold size we set for the job.
@@ -132,11 +138,11 @@ according to the threshold size we set for the job.
 
 
 ### Todo:
-1. Create a central script, which can
-    1. Launch _1 Scanner_
-    2. Launch _N ETLs_
-2. Handle multiple ETLs
-3. Retry a failed job
+1. [x] Create a central script, which can 
+    1. [x] Launch _1 Scanner_
+    2. [x] Launch _N ETLs_
+2. [x] Handle multiple ETLs
+3. [ ] Retry a failed job
 
 
 ## References:
